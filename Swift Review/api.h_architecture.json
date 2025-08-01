@@ -1,0 +1,83 @@
+{
+  "filename": "api.h",
+  "file_type": "header",
+  "primary_purpose": "Declares the public C API, type aliases, data structures, and function list used by TIC-80 cartridges and core modules. Provides the bridge between scripting VMs and engine internals.",
+  "key_structures": [
+    {
+      "name": "RemapResult",
+      "type": "struct",
+      "description": "Small POD that holds sprite index, flip and rotate info returned by Remap callback when drawing maps.",
+      "dependencies": ["tic_flip", "tic_rotate"]
+    },
+    {
+      "name": "tic_tick_data",
+      "type": "struct",
+      "description": "Holds function pointers for trace, error, exit callbacks and timing counters passed to each game tick.",
+      "dependencies": []
+    },
+    {
+      "name": "tic_point",
+      "type": "struct",
+      "description": "Simple 2-D integer coordinate pair used for mouse and generic geometry.",
+      "dependencies": []
+    },
+    {
+      "name": "tic_rect",
+      "type": "struct",
+      "description": "Rectangle expressed as x, y, width, height.",
+      "dependencies": []
+    },
+    {
+      "name": "tic_blit_callback",
+      "type": "struct",
+      "description": "Bundle of optional per-scanline and border callbacks used by renderer.",
+      "dependencies": ["tic_scanline", "tic_border", "tic_gamemenu"]
+    },
+    {
+      "name": "tic_mem",
+      "type": "struct",
+      "description": "Top-level memory context exposed to game code, containing product header, RAM pointer, cartridge data, runtime flags and input state bits.",
+      "dependencies": ["tic80", "tic_ram", "tic_cartridge"]
+    }
+  ],
+  "public_api": [
+    {
+      "name": "TIC_API_LIST",
+      "signature": "macro expanding to ~60 functions like tic_api_print, tic_api_cls, tic_api_pix, etc.",
+      "purpose": "Defines all draw, input, memory and audio functions callable by scripts."
+    },
+    {
+      "name": "tic_core_create",
+      "signature": "tic_mem* tic_core_create(s32 samplerate, tic80_pixel_color_format format);",
+      "purpose": "Factory to allocate and initialise a new console core instance."
+    },
+    {
+      "name": "tic_core_close",
+      "signature": "void tic_core_close(tic_mem* memory);",
+      "purpose": "Destroy previously created core and release memory."
+    },
+    {
+      "name": "tic_core_tick",
+      "signature": "void tic_core_tick(tic_mem* memory, tic_tick_data* data);",
+      "purpose": "Process one frame of emulation/game logic, invoking script callbacks and rendering."
+    },
+    {
+      "name": "tic_core_blit",
+      "signature": "void tic_core_blit(tic_mem* tic);",
+      "purpose": "Render prepared frame buffer to host video layer."
+    }
+  ],
+  "memory_regions": [
+    {
+      "name": "tic_mem->ram",
+      "size": "96KB",
+      "purpose": "Runtime RAM consisting of VRAM, palette, map, sound and user scratch space."
+    },
+    {
+      "name": "tic_mem->cart",
+      "size": "cartridge variable",
+      "purpose": "Persistent cartridge resources: sprites, map, sfx, music, code."
+    }
+  ],
+  "swift_conversion_priority": "critical",
+  "notes": "`api.h` defines the authoritative list of public API calls; these map directly to SpriteKit drawing and input helpers in Swift. Macro-driven API enumeration will need to be represented explicitly as Swift methods, likely through a protocol or singleton bridging layer."}
