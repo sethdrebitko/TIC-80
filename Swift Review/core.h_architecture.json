@@ -1,0 +1,79 @@
+{
+  "filename": "core.h",
+  "file_type": "header",
+  "primary_purpose": "Defines core runtime state structures and functions managing processing, rendering, input and sound within TIC-80 engine core.",
+  "key_structures": [
+    {
+      "name": "tic_sound_register_data",
+      "type": "struct",
+      "description": "Represents a single sound register value over time including timing, phase and amplitude information for synthesis pipeline.",
+      "dependencies": []
+    },
+    {
+      "name": "tic_channel_data",
+      "type": "struct",
+      "description": "Holds playback state for an individual audio channel including note, position, volume and duration information.",
+      "dependencies": ["tic_sfx_pos", "SFX_SPEED_BITS"]
+    },
+    {
+      "name": "tic_command_data",
+      "type": "struct",
+      "description": "Aggregates various per-channel music command runtime states like chord, vibrato, slide, fine-pitch and delay.",
+      "dependencies": ["tic_track_row"]
+    },
+    {
+      "name": "tic_jump_command",
+      "type": "struct",
+      "description": "Keeps track of jump target (FRAME/BEAT) used by music pattern commands.",
+      "dependencies": []
+    },
+    {
+      "name": "tic_core_state_data",
+      "type": "struct",
+      "description": "Mutable state snapshot for one runtime tick—input, channel info, music playback state, clip rect, vbank, ring-buffers, etc.",
+      "dependencies": ["tic80_gamepads", "tic80_keyboard", "tic_channel_data", "tic_command_data", "tic_vram", "tic_sound_register"]
+    },
+    {
+      "name": "tic_core",
+      "type": "struct",
+      "description": "Top-level object representing a running TIC-80 virtual console instance. Embeds tic_mem plus audio blip buffers, VM, samplerate and API dispatch table.",
+      "dependencies": ["tic_mem", "tic_script", "tic_tick_data", "blip_t", "tic_core_state_data", "TIC_API_LIST"]
+    }
+  ],
+  "public_api": [
+    {
+      "name": "tic_core_tick_io",
+      "signature": "void tic_core_tick_io(tic_mem* memory);",
+      "purpose": "Process input state and IO before main tick logic."
+    },
+    {
+      "name": "tic_core_sound_tick_start",
+      "signature": "void tic_core_sound_tick_start(tic_mem* memory);",
+      "purpose": "Prepare sound synthesis buffers at start of frame."
+    },
+    {
+      "name": "tic_core_sound_tick_end",
+      "signature": "void tic_core_sound_tick_end(tic_mem* memory);",
+      "purpose": "Flush synthesized sound data at end of frame."
+    }
+  ],
+  "memory_regions": [
+    {
+      "name": "tic_mem memory",
+      "size": "~96KB runtime RAM",
+      "purpose": "Complete console RAM containing VRAM, audio, map, sprite and user data."
+    },
+    {
+      "name": "sound_ringbuf",
+      "size": "TIC_SOUND_RINGBUF_LEN * sizeof(struct sound_ring_buf)",
+      "purpose": "Double-buffered audio register history for late audio mixing."
+    },
+    {
+      "name": "blip buffers",
+      "size": "platform dependent (blip_t*)",
+      "purpose": "Resampled stereo audio output buffers."
+    }
+  ],
+  "swift_conversion_priority": "critical",
+  "notes": "`tic_core` encapsulates most runtime responsibilities. Mapping to Swift will likely become the heart of the SpriteKit-backed emulator. Ensure careful translation of nested mutable structs and bitfield layouts; consider Swift `struct` plus helper classes for audio ring-buffer to match mutability semantics."
+}

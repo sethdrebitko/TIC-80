@@ -1,0 +1,73 @@
+{
+  "filename": "tic.h",
+  "file_type": "header",
+  "primary_purpose": "Defines low-level constants, data layout and resource structures (VRAM, RAM, audio, map, sprites, etc.) used throughout TIC-80. Acts as central memory schema spec.",
+  "key_structures": [
+    {
+      "name": "tic_tile / tic_sprites / tic_tiles",
+      "type": "struct",
+      "description": "Fixed-size byte arrays representing one or many 8×8 sprite graphics tiles.",
+      "dependencies": []
+    },
+    {
+      "name": "tic_waveform / tic_waveforms",
+      "type": "struct",
+      "description": "Raw PCM waveform tables and collection of waveforms for audio synthesis.",
+      "dependencies": []
+    },
+    {
+      "name": "tic_sample / tic_samples",
+      "type": "struct",
+      "description": "Sound effect definition: per tick parameters plus loop metadata for one SFX, and array container for all SFX.",
+      "dependencies": ["tic_sound_loop"]
+    },
+    {
+      "name": "tic_track, tic_tracks, tic_patterns",
+      "type": "struct",
+      "description": "Music sequencing data: patterns/frames mapping channels to SFX and tempo/speed parameters.",
+      "dependencies": ["tic_track_row"]
+    },
+    {
+      "name": "tic_bank and tic_cartridge",
+      "type": "struct",
+      "description": "Hierarchical container for all cartridge resources including multiple memory banks, code blob and binary attachments.",
+      "dependencies": ["tic_screen", "tic_palette", "tic_map", "tic_music", "tic_sfx"]
+    },
+    {
+      "name": "tic_ram",
+      "type": "union",
+      "description": "Unified runtime RAM view exposing strongly-typed sub-structures (VRAM, audio registers, etc.) overlaying a contiguous byte array.",
+      "dependencies": ["tic_vram", "tic_sound_register", "tic_music_state", "tic_stereo_volume", "tic_flags", "tic_font"]
+    },
+    {
+      "name": "tic_vram",
+      "type": "struct",
+      "description": "16 K video memory segment containing framebuffer, palette, color mapping and viewport variables.",
+      "dependencies": ["tic_screen", "tic_palette"]
+    }
+  ],
+  "public_api": [],
+  "memory_regions": [
+    {
+      "name": "VRAM (tic_vram)",
+      "size": "16KB",
+      "purpose": "Screen buffer, palette, sprite sheet viewport parameters and related registers."
+    },
+    {
+      "name": "RAM (tic_ram)",
+      "size": "96KB",
+      "purpose": "Complete runtime memory used by console, including VRAM, sprites, map, audio, state and user space."
+    },
+    {
+      "name": "Persistent memory",
+      "size": "1KB",
+      "purpose": "Save data slots exposed via pmem API."
+    },
+    {
+      "name": "Cartridge banks",
+      "size": "8 × 64KB + 256KB code",
+      "purpose": "ROM-like storage for resources and bytecode across multiple banks."
+    }
+  ],
+  "swift_conversion_priority": "critical",
+  "notes": "Accurate mirroring of these bit-packed structs is essential for binary compatibility with existing cartridge files. Many fields use endianness-dependent bitfields; Swift lacks native bitfields, so manual bitmask helpers or custom property wrappers will be needed. Consider wrapping underlying `Data` buffers with accessor structs to avoid ABI mismatch."}
